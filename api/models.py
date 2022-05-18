@@ -9,4 +9,4 @@ class GD(models.Model):
     gd01 =  models.FileField(upload_to=upload_path, blank=True, null=True)
     gd02 =  models.FileField(upload_to=upload_path, blank=True, null=True)
     def __str__(self):
-        return self.archivo
+        return str(self.id)

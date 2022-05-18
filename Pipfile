@@ -9,6 +9,12 @@ djangorestframework = "~=3.11.0"
 markdown = "*"
 django-filter = "*"
 django-cors-headers = "*"
+pandas = "*"
+numpy = "*"
+python-dateutil = "*"
+install = "*"
+pytz = "*"
+openpyxl = "*"
 
 [dev-packages]
 
