@@ -18,7 +18,8 @@ class GDViewSet(viewsets.ModelViewSet):
         gd01 = request.data['gd01']
         gd02 = request.data['gd02']
         archivo = request.data['archivo']
-        GD.objects.create(archivo=archivo, gd01=gd01, gd02=gd02)
-        form_gd01 = GD_01_excel(gd01, salto_filas=2)
-        form_gd01.preprocesamiento_gd01()
-        return HttpResponse({'message':'Archivo guardado'}, status=200)
+        objeto = GD.objects.create(archivo=archivo, gd01=gd01, gd02=gd02)
+        form_gd01 = GD_01_excel(objeto.gd01.path, salto_filas=0)
+        respuesta = form_gd01.preprocesamiento_gd01()
+        
+        return HttpResponse(respuesta, status=200)

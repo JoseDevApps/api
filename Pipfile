@@ -12,7 +12,6 @@ django-cors-headers = "*"
 pandas = "*"
 numpy = "*"
 python-dateutil = "*"
-install = "*"
 pytz = "*"
 openpyxl = "*"
 
