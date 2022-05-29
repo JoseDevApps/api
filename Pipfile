@@ -15,6 +15,7 @@ python-dateutil = "*"
 pytz = "*"
 openpyxl = "*"
 matplotlib = "~=3.5"
+scipy = "~=1.7"
 
 [dev-packages]
 

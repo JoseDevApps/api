@@ -1,12 +1,96 @@
 from numpy import character
 import pandas as pd
 import matplotlib.pyplot as plt
-from collections import Counter
+import numpy as np
+from scipy import stats
+import json
 #  Lectura de informacion excel
 COLUMNAS = ['Date', 'Time', 'Control - Voltaje de Bateria (V)', 'Viento - Velocidad (km/h)',
             'Viento - Direccion (°)', 'Temperatura (°C)', 'Humedad Relativa (% RH)',
             'Presion Barometrica (hPa)', 'Precipitation (mm)']
 # TIPO = [str, str, str, str]
+def RMSE(observados, simulados, WD=False):
+    N = len(observados)
+    if WD == False:
+        Phi = []
+        Phi = simulados-observados
+        Sum = sum(Phi**2)
+        rmse = np.sqrt((1/N)* Sum)
+    if WD == True:
+        Phi = np.zeros(N)
+        i = 0
+        for a,b in zip(simulados,observados):
+            if np.abs(a-b)>180:
+                Phi[i] = a-b*(1-(360/np.abs(a-b)))
+            else:
+                Phi[i] = a-b
+            i = i +1
+        np.array(Phi)
+        # print(Phi)
+        Sum = sum(Phi**2)
+        rmse = np.sqrt((1/N)* Sum)
+    return rmse
+def MAE(observados,simulados,WD =False):
+    N = len(observados)
+
+    if WD == False:
+        Phi = []
+        Phi = np.abs(simulados-observados)
+        Sum = sum(Phi**1)
+        rmse = (1/N)* Sum
+    if WD == True:
+        Phi = np.zeros(N)
+        i = 0
+        for a,b in zip(simulados,observados):
+            if np.abs(a-b)>180:
+                Phi[i] = a-b*(1-(360/np.abs(a-b)))
+                # print(Phi[i])
+            else:
+                Phi[i] =np.abs(a-b)
+            i = i +1
+        np.array(Phi)
+        # print(Phi)
+        Sum = sum(Phi**1)
+        rmse = (1/N)* Sum
+
+    return rmse
+
+def MB(observados,simulados,WD =False):
+    N = len(observados)
+    if WD == False:
+        Phi = []
+        Phi = simulados-observados
+        Sum = sum(Phi)
+        bias = (1/N)*Sum
+    if WD == True:
+        Phi = np.zeros(N)
+        i = 0
+        for a,b in zip(simulados,observados):
+            if np.abs(a-b)>180:
+                Phi[i] = a-b*(1-(360/np.abs(a-b)))
+                # print(Phi[i])
+            else:
+                Phi[i] = a-b
+            i = i +1
+        np.array(Phi)
+        Sum = sum(Phi)
+        bias = (1/N)*Sum
+    return bias
+def IOA(observados,simulados,WD =False):
+    N = len(observados)
+    M = sum(observados)/N
+    x = np.ones(N) * M
+    a = np.abs(simulados - x)
+    b = np.abs(observados - x)
+
+    IA = 1- (sum((simulados-observados)**2))/sum((a+b)**2)
+    return IA
+
+def STDE(observados,simulados):
+    rmse = RMSE(observados,simulados)
+    mb = MB(observados,simulados)
+    return np.sqrt((rmse*rmse)-(mb*mb))
+
 class GD_01_excel:
     def __init__(self, archivo, archivo_cperv, columnas=COLUMNAS,salto_filas=0, ) -> None:
         self.archivo_, self.archivo_cperv_ , self.columnas, self.sal_filas= archivo, archivo_cperv, columnas, salto_filas
@@ -52,3 +136,67 @@ class GD_01_excel:
         plt.legend()
         plt.savefig('./prueba.jpg')
         pass
+    def metricas_ws(self):
+        RMSE_WS = RMSE(self.df_total['Viento - Velocidad (m/s)'], self.df_total['W10s_1s'])
+        MB_WS = MB(self.df_total['Viento - Velocidad (m/s)'],self.df_total['W10s_1s'])
+        IOA_WS = IOA(self.df_total['Viento - Velocidad (m/s)'],self.df_total['W10s_1s'])
+        STDE_WS = STDE(self.df_total['Viento - Velocidad (m/s)'],self.df_total['W10s_1s'])
+        MAE_WS = MAE(self.df_total['Viento - Velocidad (m/s)'],self.df_total['W10s_1s'])
+        R2_WS = stats.pearsonr(self.df_total['Viento - Velocidad (m/s)'],self.df_total['W10s_1s'])
+        data = {}
+        data['rmse'] = RMSE_WS
+        data['mb'] = MB_WS
+        data['ioa'] = IOA_WS
+        data['stde'] = STDE_WS
+        data['mae'] = MAE_WS
+        data['pearson'] = R2_WS
+        json_data = json.dumps(data)
+        return json_data
+    def metricas_tmp(self):
+        RMSE = RMSE(self.df_total['Temperatura (°C)'], self.df_total['T2s_1s'])
+        MB = MB(self.df_total['Temperatura (°C)'],self.df_total['T2s_1s'])
+        IOA = IOA(self.df_total['Temperatura (°C)'],self.df_total['T2s_1s'])
+        STDE = STDE(self.df_total['Temperatura (°C)'],self.df_total['T2s_1s'])
+        MAE = MAE(self.df_total['Temperatura (°C)'],self.df_total['T2s_1s'])
+        R2 = stats.pearsonr(self.df_total['Temperatura (°C)'],self.df_total['T2s_1s'])
+        data = {}
+        data['rmse'] = RMSE
+        data['mb'] = MB
+        data['ioa'] = IOA
+        data['stde'] = STDE
+        data['mae'] = MAE
+        data['pearson'] = R2
+        json_data = json.dumps(data)
+        return json_data
+    def metricas_rh(self):
+        RMSE = RMSE(self.df_total['Humedad Relativa (% RH)'], self.df_total['Rh2_1s'])
+        MB = MB(self.df_total['Humedad Relativa (% RH)'],self.df_total['Rh2_1s'])
+        IOA = IOA(self.df_total['Humedad Relativa (% RH)'],self.df_total['Rh2_1s'])
+        STDE = STDE(self.df_total['Humedad Relativa (% RH)'],self.df_total['Rh2_1s'])
+        MAE = MAE(self.df_total['Humedad Relativa (% RH)'],self.df_total['Rh2_1s'])
+        R2 = stats.pearsonr(self.df_total['Humedad Relativa (% RH)'],self.df_total['Rh2_1s'])
+        data = {}
+        data['rmse'] = RMSE
+        data['mb'] = MB
+        data['ioa'] = IOA
+        data['stde'] = STDE
+        data['mae'] = MAE
+        data['pearson'] = R2
+        json_data = json.dumps(data)
+        return json_data
+    def metricas_wd(self):
+        RMSE = RMSE(self.df_total['Viento - Direccion (°)'], self.df_total['Wds_1s'])
+        MB = MB(self.df_total['Viento - Direccion (°)'],self.df_total['Wds_1s'])
+        IOA = IOA(self.df_total['Viento - Direccion (°)'],self.df_total['Wds_1s'])
+        STDE = STDE(self.df_total['Viento - Direccion (°)'],self.df_total['Wds_1s'])
+        MAE = MAE(self.df_total['Viento - Direccion (°)'],self.df_total['Wds_1s'])
+        R2 = stats.pearsonr(self.df_total['Viento - Direccion (°)'],self.df_total['Wds_1s'])
+        data = {}
+        data['rmse'] = RMSE
+        data['mb'] = MB
+        data['ioa'] = IOA
+        data['stde'] = STDE
+        data['mae'] = MAE
+        data['pearson'] = R2
+        json_data = json.dumps(data)
+        return json_data

@@ -1,10 +1,19 @@
 # Create your models here.
+from email.policy import default
 from django.db import models
 from datetime import date, timedelta
 def upload_path(instance, filename):
     return '/'.join(['GD', str(instance.archivo), filename])
 
-
+def meteo_default():
+    return {
+        "rmse": 0,
+        "mb": 0,
+        "ioa": 0,
+        "stde": 0,
+        "mae": 0,
+        "pearson": 0,
+    }
 class GD(models.Model):
     archivo = models.CharField(max_length=32, blank= False)
     gd01 =  models.FileField(upload_to=upload_path, blank=True, null=True)
@@ -12,11 +21,8 @@ class GD(models.Model):
     def __str__(self):
         return str(self.id)
 class Resultados(models.Model):
-    metricas_ws = models.FloatField(null=True, default=0)
-    metricas_wd = models.FloatField(null=True, default=0)
-    metricas_rh = models.FloatField(null=True, default=0)
-    metricas_tmp = models.FloatField(null=True, default=0)
-    image_ws = models.FileField(upload_to='resultados', blank=True, null=True)
-    image_wd = models.FileField(upload_to='resultados', blank=True, null=True)
-    image_rh = models.FileField(upload_to='resultados', blank=True, null=True)
-    image_tmp = models.FileField(upload_to='resultados', blank=True, null=True)
+    metricas_ws = models.JSONField('wind_speed')
+    metricas_wd = models.JSONField('wind_direction')
+    metricas_rh = models.JSONField('humedad_relativa')
+    metricas_tmp = models.JSONField('temperatura')
+    data_comp = models.JSONField('meteorologia', default= meteo_default) 

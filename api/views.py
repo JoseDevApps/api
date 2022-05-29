@@ -26,7 +26,7 @@ class GDViewSet(viewsets.ModelViewSet):
         form_gd01.preprocesamiento_gd02()
         df_total = form_gd01.comparativa_union()
         parsed = json.loads(df_total)
-        form_gd01.comp_ws()
+        form_gd01.comparativa_union()
         print(objeto.gd02.path)
         print(type(objeto.gd02.url))
         return Response(parsed)
